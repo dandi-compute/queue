@@ -45,9 +45,7 @@ def _fill_waiting(
     config = json.loads(config_file.read_text())
 
     global_max_attempts = config["max_attempts_per_asset"]
-    asset_overrides = config[
-        "asset_overrides"
-    ]  # Schema could be optional but should always include the testing asset
+    asset_overrides = config["asset_overrides"]
 
     new_waiting = set()
     for content_id in qualifying_aind_content_ids:
