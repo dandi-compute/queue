@@ -114,7 +114,7 @@ def _submit_next(
             continue
 
     print(f"Submitting content ID: {content_id}")
-    subprocess.run(["dandicompute", "submit", "--id", content_id, "--submit"])
+    subprocess.run(["dandicompute", "aind", "prepare", "--id", content_id, "--submit"])
     waiting_file.write_text(data="".join(lines))
     with submitted_file.open(mode="a") as file_stream:
         file_stream.write(content_id + "\n")
