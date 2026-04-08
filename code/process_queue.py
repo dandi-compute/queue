@@ -159,7 +159,7 @@ def _main() -> None:
 
             pipeline_config_file = pipeline_dir / "pipeline_config.json"
             pipeline_config = json.loads(pipeline_config_file.read_text())
-            priority_order = pipeline_config["priority_order"]
+            priority_order = pipeline_config["priority"]
 
             prioritized_dirs = [
                 pipeline_dir / version
