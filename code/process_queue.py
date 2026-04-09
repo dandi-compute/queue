@@ -5,34 +5,57 @@ import urllib.request
 import collections
 import subprocess
 
+_SEPARATOR = "\t"
 
-def _fetch_counts(file_path: pathlib.Path, /) -> collections.Counter:
+
+def _fetch_counts(
+    file_path: pathlib.Path,
+    /,
+    *,
+    pipeline_name: str,
+    pipeline_version: str,
+    params: str,
+) -> collections.Counter:
     """Manual additions can sometimes include comments to contextualize usage."""
-    content_ids = [
-        line.split("#")[0].strip()
-        for line in file_path.read_text().splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    ]
+    prefix = _SEPARATOR.join([pipeline_name, pipeline_version, params]) + _SEPARATOR
+    content_ids = []
+    for line in file_path.read_text().splitlines():
+        stripped = line.split("#")[0].strip()
+        if not stripped or not stripped.startswith(prefix):
+            continue
+        content_id = stripped[len(prefix) :]
+        if content_id:
+            content_ids.append(content_id)
     return collections.Counter(content_ids)
 
 
 def _fill_waiting(
     *, cwd: pathlib.Path, pipeline_name: str, pipeline_version: str, params: str
 ) -> None:
-    queue_directory = cwd / pipeline_name / pipeline_version / params
+    waiting_file = cwd / "waiting.txt"
+    prefix = _SEPARATOR.join([pipeline_name, pipeline_version, params]) + _SEPARATOR
 
-    waiting_file = queue_directory / "waiting.txt"
     previous_waiting = {
-        line.strip() for line in waiting_file.read_text().splitlines() if line.strip()
+        line.split("#")[0].strip()
+        for line in waiting_file.read_text().splitlines()
+        if line.strip()
+        and not line.strip().startswith("#")
+        and line.split("#")[0].strip().startswith(prefix)
     }
     if any(previous_waiting):
         print(
-            f"Current file `{waiting_file}` is not empty! Waiting until all entries have run before re-filling."
+            f"Queue already has entries for {pipeline_name}/{pipeline_version}/{params}!"
+            " Waiting until all entries have run before re-filling."
         )
         return
 
-    done_file = queue_directory / "submitted.txt"
-    done_counter = _fetch_counts(done_file)
+    submitted_file = cwd / "submitted.txt"
+    done_counter = _fetch_counts(
+        submitted_file,
+        pipeline_name=pipeline_name,
+        pipeline_version=pipeline_version,
+        params=params,
+    )
 
     url = (
         "https://raw.githubusercontent.com/dandi-cache/qualifying-aind-content-ids/refs/heads/min/"
@@ -41,6 +64,7 @@ def _fill_waiting(
     with urllib.request.urlopen(url=url) as response:
         qualifying_aind_content_ids = json.loads(gzip.decompress(response.read()))
 
+    queue_directory = cwd / pipeline_name / pipeline_version / params
     config_file = queue_directory / "params_config.json"
     config = json.loads(config_file.read_text())
 
@@ -56,7 +80,9 @@ def _fill_waiting(
 
         new_waiting.add(content_id)
 
-    waiting_file.write_text(data="\n".join(sorted(new_waiting)) + "\n")
+    with waiting_file.open(mode="a") as file_stream:
+        for content_id in sorted(new_waiting):
+            file_stream.write(prefix + content_id + "\n")
 
 
 def _determine_running() -> bool:
@@ -76,19 +102,9 @@ def _determine_running() -> bool:
     return False
 
 
-def _submit_next(
-    *, cwd: pathlib.Path, pipeline_name: str, pipeline_version: str, params: str
-) -> bool:
-    queue_directory = cwd / pipeline_name / pipeline_version / params
-    waiting_file = queue_directory / "waiting.txt"
-    submitted_file = queue_directory / "submitted.txt"
-    submitted_counter = _fetch_counts(submitted_file)
-
-    config_file = queue_directory / "params_config.json"
-    config = json.loads(config_file.read_text())
-
-    global_max_attempts = config["max_attempts_per_asset"]
-    asset_overrides = config["asset_overrides"]
+def _submit_next(*, cwd: pathlib.Path) -> bool:
+    waiting_file = cwd / "waiting.txt"
+    submitted_file = cwd / "submitted.txt"
 
     lines = waiting_file.read_text().splitlines()
     if not lines:
@@ -96,20 +112,49 @@ def _submit_next(
         waiting_file.write_text(data="")
         return False
 
-    line = lines.pop(0)
-    content_id = line.split("#")[0].strip()
-    while not content_id:
-        if not lines:
-            print(f"No more entries in `{waiting_file}`")
-            waiting_file.write_text(data="")
-            return False
+    entry = None
+    while lines:
         line = lines.pop(0)
-        content_id = line.split("#")[0].strip()
+        stripped = line.split("#")[0].strip()
+        if not stripped:
+            continue
+
+        parts = stripped.split(_SEPARATOR)
+        if len(parts) != 4:
+            continue
+
+        pipeline_name, pipeline_version, params, content_id = parts
+        if not content_id:
+            continue
+
+        queue_directory = cwd / pipeline_name / pipeline_version / params
+        config_file = queue_directory / "params_config.json"
+        config = json.loads(config_file.read_text())
+
+        global_max_attempts = config["max_attempts_per_asset"]
+        asset_overrides = config["asset_overrides"]
+
+        submitted_counter = _fetch_counts(
+            submitted_file,
+            pipeline_name=pipeline_name,
+            pipeline_version=pipeline_version,
+            params=params,
+        )
 
         if submitted_counter.get(content_id, 0) >= asset_overrides.get(
             content_id, global_max_attempts
         ):
             continue
+
+        entry = (pipeline_name, pipeline_version, params, content_id)
+        break
+
+    if entry is None:
+        print(f"No more entries in `{waiting_file}`")
+        waiting_file.write_text(data="")
+        return False
+
+    pipeline_name, pipeline_version, params, content_id = entry
 
     submission_version = "+".join(pipeline_version.split("+")[:-1]).removeprefix(
         "version-"
@@ -131,9 +176,12 @@ def _submit_next(
             "--submit",
         ]
     )
-    waiting_file.write_text(data="".join(lines))
+    waiting_file.write_text(data="\n".join(lines) + ("\n" if lines else ""))
     with submitted_file.open(mode="a") as file_stream:
-        file_stream.write(content_id + "\n")
+        file_stream.write(
+            _SEPARATOR.join([pipeline_name, pipeline_version, params, content_id])
+            + "\n"
+        )
     return True
 
 
@@ -141,16 +189,28 @@ def _main() -> None:
     """
     Process the current state of the queue.
 
-    If `waiting.txt` is empty, it will be re-filled in accordance with the `params_config.json`
-    and the current state of the qualifying AIND cache.
+    The queue is a single flat `waiting.txt` at the root of the queue directory.
+    Each line carries tab-separated fields: pipeline, version, params, content_id.
 
-    If there are no currently running jobs, the next entry in `waiting.txt` will be popped and
-    submitted according to the logic in `submit_job.py`.
+    If there are no waiting entries for a pipeline/version/params combination,
+    it will be re-filled in accordance with the `params_config.json` and the
+    current state of the qualifying AIND cache.  The fill order follows the
+    priority specified in each `pipeline_config.json` / `version_config.json`.
+
+    If there are no currently running jobs, the next entry in `waiting.txt` will
+    be popped and submitted according to the logic in `submit_job.py`.
     """
     cwd = pathlib.Path.cwd()
     if cwd.name != "queue":
         message = f"Current working directory must be 'queue', but is '{cwd.name}'"
         raise ValueError(message)
+
+    waiting_file = cwd / "waiting.txt"
+    submitted_file = cwd / "submitted.txt"
+    if not waiting_file.exists():
+        waiting_file.write_text("")
+    if not submitted_file.exists():
+        submitted_file.write_text("")
 
     pipeline_dirs = [path for path in cwd.iterdir() if path.is_dir()]
     for pipeline_dir in pipeline_dirs:
@@ -158,11 +218,39 @@ def _main() -> None:
         if "pipeline" not in pipeline_name:
             continue
 
-        version_dirs = [path for path in pipeline_dir.iterdir() if path.is_dir()]
+        pipeline_config_file = pipeline_dir / "pipeline_config.json"
+        pipeline_config = json.loads(pipeline_config_file.read_text())
+        version_priority_order = pipeline_config["priority"]
+
+        prioritized_version_dirs = [
+            pipeline_dir / version
+            for version in version_priority_order
+            if (pipeline_dir / version).is_dir()
+        ]
+        remaining_version_dirs = [
+            path
+            for path in pipeline_dir.iterdir()
+            if path.is_dir() and path not in prioritized_version_dirs
+        ]
+        version_dirs = prioritized_version_dirs + remaining_version_dirs
         for version_dir in version_dirs:
             pipeline_version = version_dir.name
 
-            params_dirs = [path for path in version_dir.iterdir() if path.is_dir()]
+            version_config_file = version_dir / "version_config.json"
+            version_config = json.loads(version_config_file.read_text())
+            params_priority_order = version_config["priority"]
+
+            prioritized_params_dirs = [
+                version_dir / params
+                for params in params_priority_order
+                if (version_dir / params).is_dir()
+            ]
+            remaining_params_dirs = [
+                path
+                for path in version_dir.iterdir()
+                if path.is_dir() and path not in prioritized_params_dirs
+            ]
+            params_dirs = prioritized_params_dirs + remaining_params_dirs
             for params_dir in params_dirs:
                 params = params_dir.name
 
@@ -175,60 +263,7 @@ def _main() -> None:
 
     any_running = _determine_running()
     if not any_running:
-        submitted = False
-        for pipeline_dir in pipeline_dirs:
-            if submitted:
-                break
-            pipeline_name = pipeline_dir.name
-            if "pipeline" not in pipeline_name:
-                continue
-
-            pipeline_config_file = pipeline_dir / "pipeline_config.json"
-            pipeline_config = json.loads(pipeline_config_file.read_text())
-            version_priority_order = pipeline_config["priority"]
-
-            prioritized_version_dirs = [
-                pipeline_dir / version
-                for version in version_priority_order
-                if (pipeline_dir / version).is_dir()
-            ]
-            remaining_version_dirs = [
-                path
-                for path in pipeline_dir.iterdir()
-                if path.is_dir() and path not in prioritized_version_dirs
-            ]
-            version_dirs = prioritized_version_dirs + remaining_version_dirs
-            for version_dir in version_dirs:
-                if submitted:
-                    break
-                pipeline_version = version_dir.name
-
-                version_config_file = version_dir / "version_config.json"
-                version_config = json.loads(version_config_file.read_text())
-                params_priority_order = version_config["priority"]
-
-                prioritized_params_dirs = [
-                    version_dir / params
-                    for params in params_priority_order
-                    if (version_dir / params).is_dir()
-                ]
-                remaining_params_dirs = [
-                    path
-                    for path in version_dir.iterdir()
-                    if path.is_dir() and path not in prioritized_params_dirs
-                ]
-                params_dirs = prioritized_params_dirs + remaining_params_dirs
-                for params_dir in params_dirs:
-                    params = params_dir.name
-
-                    submitted = _submit_next(
-                        cwd=cwd,
-                        pipeline_name=pipeline_name,
-                        pipeline_version=pipeline_version,
-                        params=params,
-                    )
-                    if submitted:
-                        break
+        _submit_next(cwd=cwd)
 
 
 if __name__ == "__main__":
