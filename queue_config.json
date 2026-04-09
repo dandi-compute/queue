@@ -1,6 +1,6 @@
 {
     "pipelines": {
-        "test": {
+        "aind+ephys": {
             "version_priority": ["v1.0.0+fixes+47bd492", "v1.0.1+20abeb6"],
             "params_priority": ["default", "no+motion"],
             "max_attempts_per_asset": 1,
