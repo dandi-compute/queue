@@ -144,7 +144,12 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
         if not all([pipeline, version, params, content_id]):
             continue
 
-        queue_directory = cwd / ("pipeline-" + pipeline) / ("version-" + version) / ("params-" + params)
+        queue_directory = (
+            cwd
+            / ("pipeline-" + pipeline)
+            / ("version-" + version)
+            / ("params-" + params)
+        )
         config_file = queue_directory / "params_config.json"
         config = json.loads(config_file.read_text())
 
