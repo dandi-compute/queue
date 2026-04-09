@@ -9,9 +9,8 @@ _SEPARATOR = "\t"
 
 
 def _fetch_counts(
-    file_path: pathlib.Path,
-    /,
     *,
+    file_path: pathlib.Path,
     pipeline_name: str,
     pipeline_version: str,
     params: str,
@@ -51,7 +50,7 @@ def _fill_waiting(
 
     submitted_file = cwd / "submitted.txt"
     done_counter = _fetch_counts(
-        submitted_file,
+        file_path=submitted_file,
         pipeline_name=pipeline_name,
         pipeline_version=pipeline_version,
         params=params,
@@ -135,7 +134,7 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
         asset_overrides = config["asset_overrides"]
 
         submitted_counter = _fetch_counts(
-            submitted_file,
+            file_path=submitted_file,
             pipeline_name=pipeline_name,
             pipeline_version=pipeline_version,
             params=params,
