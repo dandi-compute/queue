@@ -34,7 +34,7 @@ def _fetch_counts(
 def _fill_waiting(
     *, cwd: pathlib.Path, pipeline_name: str, pipeline_version: str, params: str
 ) -> None:
-    waiting_file = cwd / "waiting.txt"
+    waiting_file = cwd / "waiting.jsonl"
 
     previous_waiting = [
         entry
@@ -52,7 +52,7 @@ def _fill_waiting(
         )
         return
 
-    submitted_file = cwd / "submitted.txt"
+    submitted_file = cwd / "submitted.jsonl"
     done_counter = _fetch_counts(
         file_path=submitted_file,
         pipeline_name=pipeline_name,
@@ -116,8 +116,8 @@ def _determine_running() -> bool:
 
 
 def _submit_next(*, cwd: pathlib.Path) -> bool:
-    waiting_file = cwd / "waiting.txt"
-    submitted_file = cwd / "submitted.txt"
+    waiting_file = cwd / "waiting.jsonl"
+    submitted_file = cwd / "submitted.jsonl"
 
     lines = waiting_file.read_text().splitlines()
     if not lines:
@@ -209,7 +209,7 @@ def _main() -> None:
     """
     Process the current state of the queue.
 
-    The queue is a single flat `waiting.txt` at the root of the queue directory.
+    The queue is a single flat `waiting.jsonl` at the root of the queue directory.
     Each line is a JSON object with fields: pipeline_name, pipeline_version,
     params, and content_id.
 
@@ -218,7 +218,7 @@ def _main() -> None:
     current state of the qualifying AIND cache.  The fill order follows the
     priority specified in each `pipeline_config.json` / `version_config.json`.
 
-    If there are no currently running jobs, the next entry in `waiting.txt` will
+    If there are no currently running jobs, the next entry in `waiting.jsonl` will
     be popped and submitted according to the logic in `submit_job.py`.
     """
     cwd = pathlib.Path.cwd()
@@ -226,8 +226,8 @@ def _main() -> None:
         message = f"Current working directory must be 'queue', but is '{cwd.name}'"
         raise ValueError(message)
 
-    waiting_file = cwd / "waiting.txt"
-    submitted_file = cwd / "submitted.txt"
+    waiting_file = cwd / "waiting.jsonl"
+    submitted_file = cwd / "submitted.jsonl"
     if not waiting_file.exists():
         waiting_file.write_text("")
     if not submitted_file.exists():
