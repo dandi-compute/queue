@@ -9,8 +9,8 @@ import subprocess
 def _fetch_counts(
     *,
     file_path: pathlib.Path,
-    pipeline_name: str,
-    pipeline_version: str,
+    pipeline: str,
+    version: str,
     params: str,
 ) -> collections.Counter:
     content_ids = []
@@ -20,8 +20,8 @@ def _fetch_counts(
             continue
         entry = json.loads(stripped)
         if (
-            entry.get("pipeline_name") != pipeline_name
-            or entry.get("pipeline_version") != pipeline_version
+            entry.get("pipeline") != pipeline
+            or entry.get("version") != version
             or entry.get("params") != params
         ):
             continue
@@ -36,14 +36,18 @@ def _fill_waiting(
 ) -> None:
     waiting_file = cwd / "waiting.jsonl"
 
+    pipeline = pipeline_name.removeprefix("pipeline-")
+    version = pipeline_version.removeprefix("version-")
+    params_value = params.removeprefix("params-")
+
     previous_waiting = [
         entry
         for line in waiting_file.read_text().splitlines()
         if line.strip()
         for entry in [json.loads(line.strip())]
-        if entry.get("pipeline_name") == pipeline_name
-        and entry.get("pipeline_version") == pipeline_version
-        and entry.get("params") == params
+        if entry.get("pipeline") == pipeline
+        and entry.get("version") == version
+        and entry.get("params") == params_value
     ]
     if previous_waiting:
         print(
@@ -55,9 +59,9 @@ def _fill_waiting(
     submitted_file = cwd / "submitted.jsonl"
     done_counter = _fetch_counts(
         file_path=submitted_file,
-        pipeline_name=pipeline_name,
-        pipeline_version=pipeline_version,
-        params=params,
+        pipeline=pipeline,
+        version=version,
+        params=params_value,
     )
 
     url = (
@@ -88,9 +92,9 @@ def _fill_waiting(
             file_stream.write(
                 json.dumps(
                     {
-                        "pipeline_name": pipeline_name,
-                        "pipeline_version": pipeline_version,
-                        "params": params,
+                        "pipeline": pipeline,
+                        "version": version,
+                        "params": params_value,
                         "content_id": content_id,
                     }
                 )
@@ -133,14 +137,14 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
             continue
 
         entry_obj = json.loads(stripped)
-        pipeline_name = entry_obj.get("pipeline_name", "")
-        pipeline_version = entry_obj.get("pipeline_version", "")
+        pipeline = entry_obj.get("pipeline", "")
+        version = entry_obj.get("version", "")
         params = entry_obj.get("params", "")
         content_id = entry_obj.get("content_id", "")
-        if not all([pipeline_name, pipeline_version, params, content_id]):
+        if not all([pipeline, version, params, content_id]):
             continue
 
-        queue_directory = cwd / pipeline_name / pipeline_version / params
+        queue_directory = cwd / ("pipeline-" + pipeline) / ("version-" + version) / ("params-" + params)
         config_file = queue_directory / "params_config.json"
         config = json.loads(config_file.read_text())
 
@@ -149,8 +153,8 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
 
         submitted_counter = _fetch_counts(
             file_path=submitted_file,
-            pipeline_name=pipeline_name,
-            pipeline_version=pipeline_version,
+            pipeline=pipeline,
+            version=version,
             params=params,
         )
 
@@ -159,7 +163,7 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
         ):
             continue
 
-        entry = (pipeline_name, pipeline_version, params, content_id)
+        entry = (pipeline, version, params, content_id)
         break
 
     if entry is None:
@@ -167,12 +171,10 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
         waiting_file.write_text(data="")
         return False
 
-    pipeline_name, pipeline_version, params, content_id = entry
+    pipeline, version, params, content_id = entry
 
-    submission_version = "+".join(pipeline_version.split("+")[:-1]).removeprefix(
-        "version-"
-    )
-    submission_params = params.removeprefix("params-")
+    submission_version = "+".join(version.split("+")[:-1])
+    submission_params = params
 
     print(f"Submitting content ID: {content_id}")
     subprocess.run(
@@ -194,8 +196,8 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
         file_stream.write(
             json.dumps(
                 {
-                    "pipeline_name": pipeline_name,
-                    "pipeline_version": pipeline_version,
+                    "pipeline": pipeline,
+                    "version": version,
                     "params": params,
                     "content_id": content_id,
                 }
@@ -210,8 +212,7 @@ def _main() -> None:
     Process the current state of the queue.
 
     The queue is a single flat `waiting.jsonl` at the root of the queue directory.
-    Each line is a JSON object with fields: pipeline_name, pipeline_version,
-    params, and content_id.
+    Each line is a JSON object with fields: pipeline, version, params, and content_id.
 
     If there are no waiting entries for a pipeline/version/params combination,
     it will be re-filled in accordance with the `params_config.json` and the
