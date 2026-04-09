@@ -1,0 +1,1 @@
+bbc18449-24ee-4cf7-b018-e22623c3596e # 000409: sub-CSH-ZAD-024/sub-CSH-ZAD-024_ses-8207abc6-6b23-4762-92b4-82e05bed5143_desc-raw_ecephys.nwb64282787-fed5-455a-b55f-5f23747b7c33 # 001470: sourcedata/sub-M489/ses-2024+08+05/sub-M489_ses-2024-08-05_ecephys.nwbdb0048d3-6676-4d58-a08c-4322b26adc06 # 001765: sub-NP06/sub-NP06_ecephys.nwb
