@@ -5,8 +5,6 @@ import urllib.request
 import collections
 import subprocess
 
-_SEPARATOR = "\t"
-
 
 def _fetch_counts(
     *,
@@ -15,14 +13,19 @@ def _fetch_counts(
     pipeline_version: str,
     params: str,
 ) -> collections.Counter:
-    """Manual additions can sometimes include comments to contextualize usage."""
-    prefix = _SEPARATOR.join([pipeline_name, pipeline_version, params]) + _SEPARATOR
     content_ids = []
     for line in file_path.read_text().splitlines():
-        stripped = line.split("#")[0].strip()
-        if not stripped or not stripped.startswith(prefix):
+        stripped = line.strip()
+        if not stripped:
             continue
-        content_id = stripped[len(prefix) :]
+        entry = json.loads(stripped)
+        if (
+            entry.get("pipeline_name") != pipeline_name
+            or entry.get("pipeline_version") != pipeline_version
+            or entry.get("params") != params
+        ):
+            continue
+        content_id = entry.get("content_id", "")
         if content_id:
             content_ids.append(content_id)
     return collections.Counter(content_ids)
@@ -32,16 +35,17 @@ def _fill_waiting(
     *, cwd: pathlib.Path, pipeline_name: str, pipeline_version: str, params: str
 ) -> None:
     waiting_file = cwd / "waiting.txt"
-    prefix = _SEPARATOR.join([pipeline_name, pipeline_version, params]) + _SEPARATOR
 
-    previous_waiting = {
-        line.split("#")[0].strip()
+    previous_waiting = [
+        entry
         for line in waiting_file.read_text().splitlines()
         if line.strip()
-        and not line.strip().startswith("#")
-        and line.split("#")[0].strip().startswith(prefix)
-    }
-    if any(previous_waiting):
+        for entry in [json.loads(line.strip())]
+        if entry.get("pipeline_name") == pipeline_name
+        and entry.get("pipeline_version") == pipeline_version
+        and entry.get("params") == params
+    ]
+    if previous_waiting:
         print(
             f"Queue already has entries for {pipeline_name}/{pipeline_version}/{params}!"
             " Waiting until all entries have run before re-filling."
@@ -81,7 +85,17 @@ def _fill_waiting(
 
     with waiting_file.open(mode="a") as file_stream:
         for content_id in sorted(new_waiting):
-            file_stream.write(prefix + content_id + "\n")
+            file_stream.write(
+                json.dumps(
+                    {
+                        "pipeline_name": pipeline_name,
+                        "pipeline_version": pipeline_version,
+                        "params": params,
+                        "content_id": content_id,
+                    }
+                )
+                + "\n"
+            )
 
 
 def _determine_running() -> bool:
@@ -114,16 +128,16 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
     entry = None
     while lines:
         line = lines.pop(0)
-        stripped = line.split("#")[0].strip()
+        stripped = line.strip()
         if not stripped:
             continue
 
-        parts = stripped.split(_SEPARATOR)
-        if len(parts) != 4:
-            continue
-
-        pipeline_name, pipeline_version, params, content_id = parts
-        if not content_id:
+        entry_obj = json.loads(stripped)
+        pipeline_name = entry_obj.get("pipeline_name", "")
+        pipeline_version = entry_obj.get("pipeline_version", "")
+        params = entry_obj.get("params", "")
+        content_id = entry_obj.get("content_id", "")
+        if not all([pipeline_name, pipeline_version, params, content_id]):
             continue
 
         queue_directory = cwd / pipeline_name / pipeline_version / params
@@ -178,7 +192,14 @@ def _submit_next(*, cwd: pathlib.Path) -> bool:
     waiting_file.write_text(data="\n".join(lines) + ("\n" if lines else ""))
     with submitted_file.open(mode="a") as file_stream:
         file_stream.write(
-            _SEPARATOR.join([pipeline_name, pipeline_version, params, content_id])
+            json.dumps(
+                {
+                    "pipeline_name": pipeline_name,
+                    "pipeline_version": pipeline_version,
+                    "params": params,
+                    "content_id": content_id,
+                }
+            )
             + "\n"
         )
     return True
@@ -189,7 +210,8 @@ def _main() -> None:
     Process the current state of the queue.
 
     The queue is a single flat `waiting.txt` at the root of the queue directory.
-    Each line carries tab-separated fields: pipeline, version, params, content_id.
+    Each line is a JSON object with fields: pipeline_name, pipeline_version,
+    params, and content_id.
 
     If there are no waiting entries for a pipeline/version/params combination,
     it will be re-filled in accordance with the `params_config.json` and the
