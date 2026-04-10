@@ -3,3 +3,4 @@
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "no+motion", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
+{"pipeline": "aind+ephys", "version": "v1.0.0+fixes+47bd492", "params": "default", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
