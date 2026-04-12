@@ -13,3 +13,4 @@
 {"pipeline": "aind+ephys", "version": "v1.0.0+fixes+47bd492", "params": "default", "content_id": "db0048d3-6676-4d58-a08c-4322b26adc06"}
 {"pipeline": "aind+ephys", "version": "v1.0.0+fixes+47bd492", "params": "no+motion", "content_id": "f08a94fa-3266-4862-be3b-4c6aecf835b9"}
 {"pipeline": "aind+ephys", "version": "v1.0.0+fixes+47bd492", "params": "default", "content_id": "f08a94fa-3266-4862-be3b-4c6aecf835b9"}
+{"pipeline": "aind+ephys", "version": "v1.0.0+fixes+47bd492", "params": "no+motion", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
