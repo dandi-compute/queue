@@ -76,3 +76,4 @@
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "0132df9f-27c1-482c-b9f7-c536e5adee19"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "014c466f-e6d4-4756-8fc3-737023fa38cb"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
+{"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
