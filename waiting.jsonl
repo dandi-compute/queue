@@ -1,3 +1,2 @@
-{"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "64282787-fed5-455a-b55f-5f23747b7c33", "dandiset_id": "001470", "dandiset_path": "sourcedata/sub-M489/ses-2024+08+05/sub-M489_ses-2024-08-05_ecephys.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "db0048d3-6676-4d58-a08c-4322b26adc06", "dandiset_id": "001765", "dandiset_path": "sub-NP06/sub-NP06_ecephys.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "db0048d3-6676-4d58-a08c-4322b26adc06", "dandiset_id": "001765", "dandiset_path": "sub-NP06/sub-NP06_ecephys.nwb"}

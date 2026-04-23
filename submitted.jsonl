@@ -81,3 +81,4 @@
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "00089114-fc52-4421-b143-a0e6d0b07ef2"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "048d1ee9-83b7-491f-8f02-1ca615b1d455"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "64282787-fed5-455a-b55f-5f23747b7c33"}
+{"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "64282787-fed5-455a-b55f-5f23747b7c33"}
