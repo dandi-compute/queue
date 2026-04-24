@@ -84,3 +84,4 @@
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "64282787-fed5-455a-b55f-5f23747b7c33"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "default", "content_id": "db0048d3-6676-4d58-a08c-4322b26adc06"}
 {"pipeline": "aind+ephys", "version": "v1.1.0", "params": "no+motion", "content_id": "db0048d3-6676-4d58-a08c-4322b26adc06"}
+{"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "00089114-fc52-4421-b143-a0e6d0b07ef2", "dandiset_id": "001469", "dandiset_path": "sub-Chronic-Implant-2/sub-Chronic-Implant-2_obj-nvg8om_ecephys.nwb"}
