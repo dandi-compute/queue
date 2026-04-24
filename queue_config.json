@@ -1,8 +1,8 @@
 {
     "pipelines": {
         "aind+ephys": {
-            "version_priority": ["v1.1.0+c75f900"],
-            "params_priority": ["default", "no+motion"],
+            "version_priority": ["v1.1.1+b268fd2"],
+            "params_priority": ["default"],
             "max_attempts_per_asset": 1,
             "asset_overrides": {"048d1ee9-83b7-491f-8f02-1ca615b1d455": null},
             "max_fail_per_dandiset": 3
