@@ -1,4 +1,3 @@
-{"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "002d054f-fee4-457a-9889-e9700052296f", "dandiset_id": "000363", "dandiset_path": "sub-480135/sub-480135_ses-20210226T161028_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "0034e7b5-684c-4876-bd6c-7744040fe5e9", "dandiset_id": "000363", "dandiset_path": "sub-480134/sub-480134_ses-20210107T120825_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "004fb230-da29-45cf-8d88-33e698f82dea", "dandiset_id": "000233", "dandiset_path": "sub-CGM3/sub-CGM3_ses-CGM3_288um_190301_142051_ecephys.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "00538001-89eb-4027-a104-b69825880216", "dandiset_id": "000947", "dandiset_path": "sub-Gaia/sub-Gaia_ses-post-MPTP-G-161117-3_ecephys.nwb"}
