@@ -90,3 +90,4 @@
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "002d054f-fee4-457a-9889-e9700052296f", "dandiset_id": "000363", "dandiset_path": "sub-480135/sub-480135_ses-20210226T161028_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.0.1+20abeb6", "params": "default", "content_id": "0034e7b5-684c-4876-bd6c-7744040fe5e9", "dandiset_id": "000363", "dandiset_path": "sub-480134/sub-480134_ses-20210107T120825_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "00089114-fc52-4421-b143-a0e6d0b07ef2", "dandiset_id": "001469", "dandiset_path": "sub-Chronic-Implant-2/sub-Chronic-Implant-2_obj-nvg8om_ecephys.nwb"}
+{"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "0016e8ba-04c7-496f-8970-07bb24a4e283", "dandiset_id": "000943", "dandiset_path": "sub-M1/sub-M1_ses-M1-D6-2020-08-10-15-01-45_ecephys.nwb"}
