@@ -1,4 +1,3 @@
-{"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "00191182-4939-4c60-bc8c-e45b82e83048", "dandiset_id": "001747", "dandiset_path": "sub-chip19894/sub-chip19894_ses-recording049_ecephys.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "002d054f-fee4-457a-9889-e9700052296f", "dandiset_id": "000363", "dandiset_path": "sub-480135/sub-480135_ses-20210226T161028_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "0034e7b5-684c-4876-bd6c-7744040fe5e9", "dandiset_id": "000363", "dandiset_path": "sub-480134/sub-480134_ses-20210107T120825_behavior+ecephys+ogen.nwb"}
 {"pipeline": "aind+ephys", "version": "v1.1.1+b268fd2", "params": "default", "content_id": "004fb230-da29-45cf-8d88-33e698f82dea", "dandiset_id": "000233", "dandiset_path": "sub-CGM3/sub-CGM3_ses-CGM3_288um_190301_142051_ecephys.nwb"}
