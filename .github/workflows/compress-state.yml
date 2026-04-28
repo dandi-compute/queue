@@ -1,11 +1,13 @@
 name: Compress state
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - main
     paths:
       - state.jsonl
+    
 
 jobs:
   compress:
