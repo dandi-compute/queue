@@ -1,0 +1,30 @@
+name: Compress state
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - state.jsonl
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compress state.jsonl
+        run: gzip -k state.jsonl
+
+      - name: Push to ephemeral branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan compressed
+          git rm -rf --cached .
+          git add -f state.jsonl.gz
+          git commit -m "Compressed state.jsonl"
+          git push -f origin compressed
